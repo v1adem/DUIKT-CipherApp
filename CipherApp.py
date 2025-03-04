@@ -106,13 +106,13 @@ class CipherApp(QWidget):
             self.info_label.setText(f"Порядок стовпців: {info}")
 
     def single_substitution(self, text):
-        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ '
         shuffled_alphabet = ''.join(random.sample(alphabet, len(alphabet)))
         result = ''.join(shuffled_alphabet[alphabet.find(char)] if char in alphabet else char for char in text)
         return result, shuffled_alphabet
 
     def keyword_cipher(self, text, keyword):
-        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ '
         key_alphabet = ''.join(sorted(set(keyword + alphabet), key=(keyword + alphabet).index))
         result = ''.join(key_alphabet[alphabet.find(char)] if char in alphabet else char for char in text)
         return result, key_alphabet
@@ -139,7 +139,7 @@ class CipherApp(QWidget):
                 if char.isalpha() and char not in used_chars:
                     matrix.append(char)
                     used_chars.append(char)
-            for char in 'ABCDEFGHIKLMNOPQRSTUVWXYZ':
+            for char in 'ABCDEFGHIKLMNOPQRSTUVWXYZ ':
                 if char not in used_chars:
                     matrix.append(char)
             return [matrix[i:i + 5] for i in range(0, 25, 5)]
