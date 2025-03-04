@@ -66,13 +66,13 @@ class CipherApp(QWidget):
             'Однобуквена заміна: Кожна літера замінюється іншою випадковою літерою.',
             'Гасловий шифр: Використовує ключове слово для створення нового алфавіту.',
             'Шифр Віженера: Багатоалфавітний шифр з використанням ключового слова.',
-            'Шифр Плейфера: Шифрує пари літер за допомогою матриці 5x5.',
+            'Шифр Плейфера: Шифрує пари літер за допомогою матриці 6x5.',
             'Вертикальна перестановка: Переставляє літери тексту у стовпцях відповідно до ключа.'
         ]
         self.description_label.setText(descriptions[index])
 
     def update_key_visibility(self, index):
-        if index == 1 or index == 2 or index == 3 or index == 4:  # Гасловий, Віженер, Плейфер, Перестановка
+        if index == 1 or index == 2 or index == 4:  # Гасловий, Віженер, Плейфер, Перестановка
             self.key_edit.show()
             self.key_label.show()
         else:
@@ -97,9 +97,9 @@ class CipherApp(QWidget):
             self.result_edit.setPlainText(result)
             self.info_label.setText(f"Ключ: {info}")
         elif cipher_type == 'Шифр Плейфера':
-            result, info = self.playfair_cipher(text, key)
+            result, info = self.playfair_cipher(text)
             self.result_edit.setPlainText(result)
-            self.info_label.setText(f"Матриця Плейфера: {info}")
+            self.info_label.setText(f"Матриця Плейфера: \n{info}")
         elif cipher_type == 'Вертикальна перестановка':
             result, info = self.vertical_transposition(text, key)
             self.result_edit.setPlainText(result)
@@ -130,40 +130,46 @@ class CipherApp(QWidget):
                 result += char
         return result, key
 
-    def playfair_cipher(self, text, key):
-        def create_matrix(key):
-            key = key.upper().replace('J', 'I')
+    def playfair_cipher(self, text):
+        def randomize_string(input_string):
+            chars = list(input_string)
+            random.shuffle(chars)
+            return ''.join(chars)
+
+        def create_matrix():
             matrix = []
-            used_chars = []
-            for char in key:
-                if char.isalpha() and char not in used_chars:
-                    matrix.append(char)
-                    used_chars.append(char)
-            for char in 'ABCDEFGHIKLMNOPQRSTUVWXYZ ':
-                if char not in used_chars:
-                    matrix.append(char)
-            return [matrix[i:i + 5] for i in range(0, 25, 5)]
+            input_string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ ,.-'
+            randomized_string = randomize_string(input_string)
+            for char in randomized_string:
+                matrix.append(char)
+            return [matrix[i:i + 5] for i in range(0, 30, 5)]
 
         def find_char(matrix, char):
             for row_index, row in enumerate(matrix):
                 if char in row:
                     return row_index, row.index(char)
+            return None
 
         def encrypt_pair(matrix, pair):
-            row1, col1 = find_char(matrix, pair[0])
-            row2, col2 = find_char(matrix, pair[1])
+            pos1 = find_char(matrix, pair[0])
+            pos2 = find_char(matrix, pair[1])
+
+            if pos1 is None or pos2 is None:
+                return pair[0] + pair[1]
+
+            row1, col1 = pos1
+            row2, col2 = pos2
 
             if row1 == row2:
                 return matrix[row1][(col1 + 1) % 5] + matrix[row2][(col2 + 1) % 5]
             elif col1 == col2:
-                return matrix[(row1 + 1) % 5][col1] + matrix[(row2 + 1) % 5][col2]
+                return matrix[(row1 + 1) % 6][col1] + matrix[(row2 + 1) % 6][col2]  # Змінено на 6
             else:
                 return matrix[row1][col2] + matrix[row2][col1]
 
-        matrix = create_matrix(key)
-        text = text.replace('J', 'I')
+        matrix = create_matrix()
         if len(text) % 2 != 0:
-            text += 'X'
+            text += '@'
 
         pairs = [text[i:i + 2] for i in range(0, len(text), 2)]
         result = ''.join(encrypt_pair(matrix, pair) for pair in pairs)
